@@ -16,57 +16,69 @@ const int TILE = 100;
 float PLAYER_ANGEL = 0.0f;
 float PLAYER_SPEED = 4.0f;
 
-double FOV = 3.14159265 / 3.0; 
+double FOV = PI / PI; 
 
 
-Vector2 *getWall(void)
+Vector2 *getMap(void)
 {   
-    int i = 0;
-    Vector2 *wall = (Vector2 *)calloc(
-        (scrWidth / TILE)*(scrHalfHeight / TILE), sizeof(Vector2));
-    
+    int w, i = 0;
+    Vector2 map[(scrWidth / TILE)*(scrHeight / TILE)];
     for (int y = 0; y < Len(MAP); y++)
         for (int x = 0; x < Len(MAP[y]); x++)
         {
             if (MAP[y][x] == 'W'){
-                wall[i].x = (float)x * TILE;
-                wall[i].y = (float)y * TILE;
+                map[i].x = (float)x * TILE;
+                map[i].y = (float)y * TILE;
                 i++;
             }
         }
+    Vector2 *wall = (Vector2 *)calloc(i, sizeof(Vector2));
+    for (w = 0; w < i; w++)
+    {
+        wall[w].x = map[w].x;
+        wall[w].y = map[w].y;
+    }
+    wall[w].x = -1.0f; // -1.0 flag stop iter 
     return wall;
 }
 
 
 void move_player(Vector2 *pp)
 {   
+    int flag_press = 0;
     float cos_a = cos(PLAYER_ANGEL);
     float sin_a = sin(PLAYER_ANGEL);
     if (IsKeyDown(KEY_W)) 
     {   
+        flag_press = 1;
         pp->x += PLAYER_SPEED * cos_a;
         pp->y += PLAYER_SPEED * sin_a;
     }   
     if (IsKeyDown(KEY_S)) 
     {   
+        flag_press = 1;
         pp->x -= PLAYER_SPEED * cos_a;
-        pp->y -=PLAYER_SPEED * sin_a;
+        pp->y -= PLAYER_SPEED * sin_a;
     }   
     if (IsKeyDown(KEY_A)) 
     {   
-        pp->x += PLAYER_SPEED * sin_a;
-        pp->y -= PLAYER_SPEED * cos_a;
+        float div = (flag_press) ? 2 : 1;
+        pp->x += (PLAYER_SPEED/div) * sin_a;
+        pp->y -= (PLAYER_SPEED/div) * cos_a;
     }
     if (IsKeyDown(KEY_D)) 
     {   
-        pp->x -= PLAYER_SPEED * sin_a;
-        pp->y += PLAYER_SPEED * cos_a;
-    } 
-         
-    if (IsKeyDown(KEY_LEFT)) PLAYER_ANGEL -= 0.02f;
-    if (IsKeyDown(KEY_RIGHT)) PLAYER_ANGEL += 0.02f;
+        float div = (flag_press) ? 2 : 1;
+        pp->x -= (PLAYER_SPEED/div) * sin_a;
+        pp->y += (PLAYER_SPEED/div) * cos_a;
+    }      
+    if (IsKeyDown(KEY_LEFT))
+        PLAYER_ANGEL -= 0.02f;
+    if (IsKeyDown(KEY_RIGHT))
+        PLAYER_ANGEL += 0.02f;
     PLAYER_ANGEL = fmod(PLAYER_ANGEL, 360.0);
 }
+
 
 int main(void)
 {
@@ -76,7 +88,7 @@ int main(void)
     //--------------------------------------------------------------------------------------
     Vector2 player_pos = {(float)scrHalfWidth, (float)scrHalfHeight};
 
-    Vector2 *walls = getWall();
+    Vector2 *walls = getMap();
     // Main game loop
     while (!WindowShouldClose())
     {   
@@ -87,8 +99,11 @@ int main(void)
         // Update Screen
         BeginDrawing();
         ClearBackground(BLACK);
-        for (int i = 0; i < (scrWidth / TILE)*(scrHalfHeight / TILE); i++)
-            DrawRectangleLines((int)walls[i].x, (int)walls[i].y, TILE, TILE, DARKGRAY);
+        for (int i = 0; walls[i].x >= 0; i++)
+            {
+                DrawRectangleLines(
+                (int)walls[i].x, (int)walls[i].y, TILE, TILE, DARKGRAY);
+            }
         DrawCircleV(player_pos, 10, GREEN);
         DrawLineV(player_pos, player_dst, GREEN);
         DrawFPS(200, 200);
