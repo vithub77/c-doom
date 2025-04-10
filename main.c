@@ -1,7 +1,4 @@
-#include <math.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include "raylib.h"
+#include "import.h"
 #include "map.h"
 
 #define Len(x) (sizeof(x) / sizeof(x[0]))
@@ -13,10 +10,11 @@ const int scrHalfHeight = scrHeight / 2;
 const int FPS = 60;
 const int TILE = 100;
 
-float PLAYER_ANGEL = 0.0f;
+double PLAYER_ANGEL = 0.0f;
 float PLAYER_SPEED = 4.0f;
 
-double FOV = PI / PI; 
+
+void ray_casting(Vector2, double, const Vector2 *w);   // ray_casting.c
 
 
 Vector2 *getMap(void)
@@ -68,14 +66,14 @@ void move_player(Vector2 *pp)
     }
     if (IsKeyDown(KEY_D)) 
     {   
-        float div = (flag_press) ? 2 : 1;
+        float div = (flag_press) ? 2.0f : 1.0f;
         pp->x -= (PLAYER_SPEED/div) * sin_a;
         pp->y += (PLAYER_SPEED/div) * cos_a;
     }      
     if (IsKeyDown(KEY_LEFT))
-        PLAYER_ANGEL -= 0.02f;
+        PLAYER_ANGEL -= 0.04f;
     if (IsKeyDown(KEY_RIGHT))
-        PLAYER_ANGEL += 0.02f;
+        PLAYER_ANGEL += 0.04f;
     PLAYER_ANGEL = fmod(PLAYER_ANGEL, 360.0);
 }
 
@@ -105,6 +103,7 @@ int main(void)
                 (int)walls[i].x, (int)walls[i].y, TILE, TILE, DARKGRAY);
             }
         DrawCircleV(player_pos, 10, GREEN);
+        ray_casting(player_pos, PLAYER_ANGEL, walls);
         DrawLineV(player_pos, player_dst, GREEN);
         DrawFPS(200, 200);
         EndDrawing();

@@ -1,5 +1,5 @@
 build:
-	gcc main.c -o gamerun -lraylib -lm
+	gcc *.c -Wall -o gamerun -lraylib -lm
 
 run:
 	./gamerun
