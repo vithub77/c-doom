@@ -4,22 +4,21 @@ extern int TILE;
 extern int scrWidth;
 extern int scrHalfHeight;
 
-
-bool check_colision(Vector2 dst, const Vector2 *w)
+bool check_colision(Vector2 dst, const Walls *w)
 {
     int dst_x = ((int)dst.x / TILE * TILE);
     int dst_y = ((int)dst.y / TILE * TILE);
-    for (int i = 0; w[i].x >= 0; i++)
-        if ((int)w[i].x == dst_x && (int)w[i].y == dst_y)
+    for (int i = 0; i < w->size; i++)
+        if ((int)w->walls[i].x == dst_x && (int)w->walls[i].y == dst_y)
             return true;  
     return false;
 }
 
-void ray_casting(Vector2 plp, float pla, const Vector2 *walls)
+void ray_casting(Vector2 plp, float pla, const Walls *walls)
 {   
     const float Fov = PI / 3.0;  // 60
     const float Half_fov = Fov / 2.0;
-    const int Num_rays = 360;
+    const int Num_rays = 120;
     const int Depth = 800;
     const float Delta_angle = Fov / (float)Num_rays;
     const float Dist = (float)Num_rays / (float)(2 * tan(Half_fov));

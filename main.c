@@ -14,7 +14,7 @@ float PLAYER_ANGEL = 0.0f;
 float PLAYER_SPEED = 3.0f;
 
 
-void ray_casting(Vector2, float, const Vector2 *w);   // ray_casting.c
+void ray_casting(Vector2, float, const Walls *w);   // ray_casting.c
 
 int cmpless(const void * lhs, const void * rhs)
 {
@@ -30,32 +30,30 @@ int cmpless(const void * lhs, const void * rhs)
         return 0;
 }
 
-Vector2 *getMap(void)
+int getMap(Walls *wals)
 {   
     int w, i = 0;
     Vector2 map[(scrWidth / TILE)*(scrHeight / TILE)];
-    for (int y = 0; y < Len(MAP); y++)
-        for (int x = 0; x < Len(MAP[y]); x++)
+    for (int y = 0; y < Len(MYMAP); y++)
+        for (int x = 0; x < Len(MYMAP[y]); x++)
         {
-            if (MAP[y][x] == 'W'){
+            if (MYMAP[y][x] == 'W'){
                 map[i].x = (float)x * TILE;
                 map[i].y = (float)y * TILE;
                 i++;
             }
         }
-
     qsort(map, i, sizeof(Vector2), cmpless);
 
-    Vector2 *wall = (Vector2 *)calloc(i, sizeof(Vector2));
+    wals->size = i;
+    wals->walls = (Vector2 *)calloc(i, sizeof(Vector2));
+
     for (w = 0; w < i; w++)
     {
-        printf("{%.2f, %.2f}\n", map[w].x, map[w].y);
-        wall[w].x = map[w].x;
-        wall[w].y = map[w].y;
+        wals->walls[w].x = map[w].x;
+        wals->walls[w].y = map[w].y;
     }
-    wall[w].x = -1.0f; // -1.0 flag stop iter 
-
-    return wall;
+    return 1;
 }
 
 
@@ -102,29 +100,33 @@ int main(void)
     // DisableCursor();                
     SetTargetFPS(FPS);   
     //--------------------------------------------------------------------------------------
-    Vector2 player_pos = {(float)scrHalfWidth, (float)scrHalfHeight};
+    Vector2 player_pos = {(float)scrHalfWidth, (float)scrHalfHeight + 30.0};
 
-    Vector2 *walls = getMap();
+
+    Walls *walls = (Walls *)malloc(sizeof(Walls));
+    int res = getMap(walls);
+    assert (res == 1);
+
     // Main game loop
     while (!WindowShouldClose())
     {   
         move_player(&player_pos);
-        // Vector2 player_dst = {
-        //     (float)player_pos.x + scrWidth * cos(PLAYER_ANGEL),
-        //     (float)player_pos.y + scrWidth * sin(PLAYER_ANGEL)};
+        Vector2 player_dst = {
+            (float)player_pos.x + scrWidth * cos(PLAYER_ANGEL),
+            (float)player_pos.y + scrWidth * sin(PLAYER_ANGEL)};
         // Update Screen
         BeginDrawing();
         ClearBackground(BLACK);
         ray_casting(player_pos, PLAYER_ANGEL, walls);
-        // for (int i = 0; walls[i].x >= 0; i++)
-        //         DrawRectangleLines(
-        //         (int)walls[i].x, (int)walls[i].y, TILE, TILE, DARKGRAY);
-        // DrawCircleV(player_pos, 10, GREEN);
-        // DrawLineV(player_pos, player_dst, GREEN);
+        for (int i = 0; i < walls->size; i++)
+                DrawRectangleLines(
+                (int)walls->walls[i].x, (int)walls->walls[i].y, TILE, TILE, DARKGRAY);
+        DrawCircleV(player_pos, 10, GREEN);
+        DrawLineV(player_pos, player_dst, GREEN);
         DrawFPS(200, 200);
         EndDrawing();
     }
-    free(walls);
+    free(walls->walls);
     CloseWindow();
     return 0;
 }
