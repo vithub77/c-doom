@@ -10,12 +10,25 @@ const int scrHalfHeight = scrHeight / 2;
 const int FPS = 60;
 const int TILE = 100;
 
-double PLAYER_ANGEL = 0.0f;
-float PLAYER_SPEED = 4.0f;
+float PLAYER_ANGEL = 0.0f;
+float PLAYER_SPEED = 3.0f;
 
 
-void ray_casting(Vector2, double, const Vector2 *w);   // ray_casting.c
+void ray_casting(Vector2, float, const Vector2 *w);   // ray_casting.c
 
+int cmpless(const void * lhs, const void * rhs)
+{
+    Vector2 *lr = (Vector2 *)lhs;
+    Vector2 *rr = (Vector2 *)rhs;
+    float ilr = lr->x * lr->x + lr->y * lr->y;
+    float irr = rr->x * rr->x + rr->y * rr->y;
+    if (ilr < irr)
+        return -1;
+    if (ilr > irr)
+        return 1;
+    else
+        return 0;
+}
 
 Vector2 *getMap(void)
 {   
@@ -30,13 +43,18 @@ Vector2 *getMap(void)
                 i++;
             }
         }
+
+    qsort(map, i, sizeof(Vector2), cmpless);
+
     Vector2 *wall = (Vector2 *)calloc(i, sizeof(Vector2));
     for (w = 0; w < i; w++)
     {
+        printf("{%.2f, %.2f}\n", map[w].x, map[w].y);
         wall[w].x = map[w].x;
         wall[w].y = map[w].y;
     }
     wall[w].x = -1.0f; // -1.0 flag stop iter 
+
     return wall;
 }
 
@@ -91,20 +109,18 @@ int main(void)
     while (!WindowShouldClose())
     {   
         move_player(&player_pos);
-        Vector2 player_dst = {
-            (float)player_pos.x + scrWidth * cos(PLAYER_ANGEL),
-            (float)player_pos.y + scrWidth * sin(PLAYER_ANGEL)};
+        // Vector2 player_dst = {
+        //     (float)player_pos.x + scrWidth * cos(PLAYER_ANGEL),
+        //     (float)player_pos.y + scrWidth * sin(PLAYER_ANGEL)};
         // Update Screen
         BeginDrawing();
         ClearBackground(BLACK);
-        for (int i = 0; walls[i].x >= 0; i++)
-            {
-                DrawRectangleLines(
-                (int)walls[i].x, (int)walls[i].y, TILE, TILE, DARKGRAY);
-            }
-        DrawCircleV(player_pos, 10, GREEN);
         ray_casting(player_pos, PLAYER_ANGEL, walls);
-        DrawLineV(player_pos, player_dst, GREEN);
+        // for (int i = 0; walls[i].x >= 0; i++)
+        //         DrawRectangleLines(
+        //         (int)walls[i].x, (int)walls[i].y, TILE, TILE, DARKGRAY);
+        // DrawCircleV(player_pos, 10, GREEN);
+        // DrawLineV(player_pos, player_dst, GREEN);
         DrawFPS(200, 200);
         EndDrawing();
     }
